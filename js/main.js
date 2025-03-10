@@ -28,7 +28,7 @@ function mapearCampos(llaves, valores){
 function validarCampoNombre(nombre){
     if ( nombre === undefined || nombre.length === 0 ) return false;
     try{
-        const regex = /^[a-zA-Z]+$/;
+        const regex = /^[a-zA-Z\s]+$/;
         if ( !regex.test(nombre) ) return false;
         return true;
     }catch(err){
@@ -36,20 +36,11 @@ function validarCampoNombre(nombre){
     }
 }
 
-function validarCampoEmail(email){
-    if ( email === undefined ) return;
+function validarCampoEmail(email) {
+    if ( email.length === 0 ) return false;
     try{
-        let contadorPuntos = 0;
-        let contadorArrobas = 0;
-        const caracteresEmail = email.split('');
-        const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if ( !regexEmail.test(email) ) return false;
-        for( char of caracteresEmail ) {
-            if ( char === '.' ) contadorPuntos ++;
-            if ( char === '@' ) contadorArrobas ++;
-            if ( contadorArrobas > 1 || contadorPuntos > 1 ) return false;
-        }
-        return true;
+        const regexEmail = /^[^\s@]+@[^\s@]+(\.[^\s@]+)+$/;
+        return regexEmail.test(email);
     }catch(err){
         console.error(err);
     }
@@ -60,18 +51,23 @@ function validarCampoMensaje(mensaje){
     return true;
 }
 
-function crearMensajeError(mensaje){
-    if ( mensaje.length === 0) return;
-    try{
-        const elementoError = document.querySelector('span');
-        elementoError.textContent = mensaje;
-        elementoError.style.fontFamily = 'Poppins';
-        elementoError.style.color = 'red';
-        elementoError.style.textAlign = 'center';
-        elementoError.style.display = 'inline';
-    }catch(err){
-        console.error(err);
+function crearMensajeError(mensaje) {
+    if (!mensaje) return;
+    
+     const campos = [...form.elements].filter(el => ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
+     const campoError = campos[campos.length - 1];
+
+    let elementoError = campoError.nextElementSibling;
+    if (!elementoError || elementoError.tagName !== 'SPAN') {
+        elementoError = document.createElement('span');
+        campoError.insertAdjacentElement('afterend', elementoError);
     }
+    
+    elementoError.textContent = mensaje;
+    elementoError.style.fontFamily = 'Poppins';
+    elementoError.style.color = 'red';
+    elementoError.style.textAlign = 'center';
+    elementoError.style.display = 'block';
 }
 
 function obtenerCamposForm(form){
@@ -99,33 +95,31 @@ function limpiarMensajeError(){
 const camposFiltrados = filtrarCampos(form.elements);
 
 btnEnviar.addEventListener('click', (e) => {
-    const values = mapearCampos(camposFiltrados, form.elements);
-    limpiarMensajeError();
     e.preventDefault();
+    limpiarMensajeError();
+
+    const values = mapearCampos(camposFiltrados, form.elements);
     const { nombre, email, mensaje } = values;
-    let mensajeError;
-    const esNombreValido = validarCampoNombre(nombre);
-    const esEmailValido = validarCampoEmail(email);
-    const esMensajeValido = validarCampoMensaje(mensaje);
-    if ( !esNombreValido ) {
-        mensajeError = 'El nombre no debe estar vacío y debe contener solo letras';
-        crearMensajeError(mensajeError);
+
+    if (!validarCampoNombre(nombre)) {
+        crearMensajeError('El nombre no debe estar vacío y debe contener solo letras');
         limpiarValorCampo(form, 'nombre');
-        return;
-    }else if ( !esEmailValido ) {
-        mensajeError = 'Formato de email incorrecto';
-        crearMensajeError(mensajeError);
-        limpiarValorCampo(form, 'email');
-        return;
-    }else if( !esMensajeValido ) {
-        mensajeError = 'El mensaje debe contener al menos 10 caracteres'
-        crearMensajeError(mensajeError);
-        limpiarValorCampo(form, 'mensaje');
-        return;
-    }else if( esNombreValido && esEmailValido && esMensajeValido ) {
-        limpiarMensajeError();
-        alert('Se han enviado los datos correctamente');
         return;
     }
 
-})
+    if (!validarCampoEmail(email)) {
+        crearMensajeError('Formato de email incorrecto');
+        limpiarValorCampo(form, 'email');
+        return;
+    }
+
+    if (!validarCampoMensaje(mensaje)) {
+        crearMensajeError('El mensaje debe contener al menos 10 caracteres');
+        limpiarValorCampo(form, 'mensaje');
+        return;
+    }
+
+    limpiarMensajeError();
+    alert('Se han enviado los datos correctamente');
+    form.reset()
+});
