@@ -26,10 +26,10 @@ function mapearCampos(llaves, valores){
 }
 
 function validarCampoNombre(nombre){
-    if ( !nombre ) return;
+    if ( nombre === undefined || nombre.length === 0 ) return false;
     try{
-        const regex = /[a-zA-Z]/;
-        if ( !nombre.length !== 0 || !regex.test(nombre) ) return false;
+        const regex = /^[a-zA-Z]+$/;
+        if ( !regex.test(nombre) ) return false;
         return true;
     }catch(err){
         console.error(err)
@@ -37,14 +37,27 @@ function validarCampoNombre(nombre){
 }
 
 function validarCampoEmail(email){
-    if ( !email ) return;
+    if ( email === undefined ) return;
     try{
+        let contadorPuntos = 0;
+        let contadorArrobas = 0;
         const caracteresEmail = email.split('');
-        if ( !caracteresEmail.includes('@') || !caracteresEmail.includes('.com') ) return false;
+        const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if ( !regexEmail.test(email) ) return false;
+        for( char of caracteresEmail ) {
+            if ( char === '.' ) contadorPuntos ++;
+            if ( char === '@' ) contadorArrobas ++;
+            if ( contadorArrobas > 1 || contadorPuntos > 1 ) return false;
+        }
         return true;
     }catch(err){
         console.error(err);
     }
+}
+
+function validarCampoMensaje(mensaje){
+    if ( mensaje.length === 0 || mensaje.length < 10 ) return false;
+    return true;
 }
 
 function crearMensajeError(mensaje){
@@ -56,7 +69,6 @@ function crearMensajeError(mensaje){
         elementoError.style.color = 'red';
         elementoError.style.textAlign = 'center';
         elementoError.style.display = 'inline';
-        console.log(elementoError, 'elemento error')
     }catch(err){
         console.error(err);
     }
@@ -85,23 +97,35 @@ function limpiarMensajeError(){
 }
 
 const camposFiltrados = filtrarCampos(form.elements);
-const values = mapearCampos(camposFiltrados, form.elements);
+
 btnEnviar.addEventListener('click', (e) => {
+    const values = mapearCampos(camposFiltrados, form.elements);
     limpiarMensajeError();
     e.preventDefault();
-    const { nombre, email } = values;
-    let mensaje;
+    const { nombre, email, mensaje } = values;
+    let mensajeError;
     const esNombreValido = validarCampoNombre(nombre);
-    const esEmailInvalido = validarCampoEmail();
+    const esEmailValido = validarCampoEmail(email);
+    const esMensajeValido = validarCampoMensaje(mensaje);
     if ( !esNombreValido ) {
-        mensaje = 'El nombre no debe estar vacío y debe contener solo letras';
-        crearMensajeError(mensaje);
-        limpiarValorCampo(form, 'nombre')
+        mensajeError = 'El nombre no debe estar vacío y debe contener solo letras';
+        crearMensajeError(mensajeError);
+        limpiarValorCampo(form, 'nombre');
         return;
-    }else if ( !esEmailInvalido ) {
-        mensaje = 'Formato de email incorrecto';
-        crearMensajeError(mensaje);
+    }else if ( !esEmailValido ) {
+        mensajeError = 'Formato de email incorrecto';
+        crearMensajeError(mensajeError);
         limpiarValorCampo(form, 'email');
+        return;
+    }else if( !esMensajeValido ) {
+        mensajeError = 'El mensaje debe contener al menos 10 caracteres'
+        crearMensajeError(mensajeError);
+        limpiarValorCampo(form, 'mensaje');
+        return;
+    }else if( esNombreValido && esEmailValido && esMensajeValido ) {
+        limpiarMensajeError();
+        alert('Se han enviado los datos correctamente');
+        return;
     }
 
 })
