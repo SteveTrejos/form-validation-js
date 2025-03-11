@@ -92,34 +92,55 @@ function limpiarMensajeError(){
     }
 }
 
-const camposFiltrados = filtrarCampos(form.elements);
+function inicializarFormulario() {
+    if (!form || !btnEnviar) return; // Evita errores si no se encuentra el formulario en Jest
 
-btnEnviar.addEventListener('click', (e) => {
-    e.preventDefault();
-    limpiarMensajeError();
+    const camposFiltrados = filtrarCampos(form.elements);
 
-    const values = mapearCampos(camposFiltrados, form.elements);
-    const { nombre, email, mensaje } = values;
+    btnEnviar.addEventListener('click', (e) => {
+        e.preventDefault();
+        limpiarMensajeError();
 
-    if (!validarCampoNombre(nombre)) {
-        crearMensajeError('El nombre no debe estar vacío y debe contener solo letras');
-        limpiarValorCampo(form, 'nombre');
-        return;
-    }
+        const values = mapearCampos(camposFiltrados, form.elements);
+        const { nombre, email, mensaje } = values;
 
-    if (!validarCampoEmail(email)) {
-        crearMensajeError('Formato de email incorrecto');
-        limpiarValorCampo(form, 'email');
-        return;
-    }
+        if (!validarCampoNombre(nombre)) {
+            crearMensajeError('El nombre no debe estar vacío y debe contener solo letras');
+            limpiarValorCampo(form, 'nombre');
+            return;
+        }
 
-    if (!validarCampoMensaje(mensaje)) {
-        crearMensajeError('El mensaje debe contener al menos 10 caracteres');
-        limpiarValorCampo(form, 'mensaje');
-        return;
-    }
+        if (!validarCampoEmail(email)) {
+            crearMensajeError('Formato de email incorrecto');
+            limpiarValorCampo(form, 'email');
+            return;
+        }
 
-    limpiarMensajeError();
-    alert('Se han enviado los datos correctamente');
-    form.reset()
-});
+        if (!validarCampoMensaje(mensaje)) {
+            crearMensajeError('El mensaje debe contener al menos 10 caracteres');
+            limpiarValorCampo(form, 'mensaje');
+            return;
+        }
+
+        limpiarMensajeError();
+        alert('Se han enviado los datos correctamente');
+        form.reset();
+    });
+}
+
+// Solo ejecutar en el navegador
+if (typeof window !== "undefined") {
+    inicializarFormulario();
+}
+
+export default {
+            filtrarCampos, 
+            mapearCampos, 
+            validarCampoNombre, 
+            validarCampoEmail, 
+            validarCampoMensaje, 
+            crearMensajeError, 
+            obtenerCamposForm,
+            limpiarValorCampo,
+            limpiarMensajeError
+        }
