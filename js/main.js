@@ -26,7 +26,7 @@ function mapearCampos(llaves, valores){
 }
 
 function validarCampoNombre(nombre){
-    if ( nombre === undefined || nombre.length === 0 ) return false;
+    if ( nombre === undefined  || nombre === null || nombre.length === 0 ) return false;
     try{
         const regex = /^[a-zA-Z\s]+$/;
         if ( !regex.test(nombre) ) return false;
@@ -39,15 +39,15 @@ function validarCampoNombre(nombre){
 function validarCampoEmail(email) {
     if ( email.length === 0 ) return false;
     try{
-        const regexEmail = /^[^\s@]+@[^\s@]+(\.[^\s@]+)+$/;
-        return regexEmail.test(email);
+        const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return regexEmail.test(email) && !email.includes('..');
     }catch(err){
         console.error(err);
     }
 }
 
 function validarCampoMensaje(mensaje){
-    if ( mensaje.length === 0 || mensaje.length < 10 ) return false;
+    if ( mensaje === null || mensaje === undefined || mensaje.length === 0 || mensaje.length < 10 ) return false;
     return true;
 }
 
@@ -96,12 +96,16 @@ function inicializarFormulario() {
     if (!form || !btnEnviar) return; // Evita errores si no se encuentra el formulario en Jest
 
     const camposFiltrados = filtrarCampos(form.elements);
+    console.log('campos filtrados', camposFiltrados);
+    console.log('form.elements', form.elements);
 
     btnEnviar.addEventListener('click', (e) => {
         e.preventDefault();
-        limpiarMensajeError();
+        // limpiarMensajeError();
 
         const values = mapearCampos(camposFiltrados, form.elements);
+        console.log('values de mapear campos', values);
+
         const { nombre, email, mensaje } = values;
 
         if (!validarCampoNombre(nombre)) {
@@ -122,8 +126,8 @@ function inicializarFormulario() {
             return;
         }
 
-        limpiarMensajeError();
         alert('Se han enviado los datos correctamente');
+        limpiarMensajeError();
         form.reset();
     });
 }
